@@ -49,12 +49,15 @@ impl Sandflake {
         }
     }
 
+    // ToDo: テストコードを追加する
+    // ToDo: Docコメントを追加する
     pub fn generate_id(&self) -> u64 {
         let mut timestamp = self.current_timestamp.as_ref()();
         let last_timestamp = self.last_timestamp.load(Ordering::SeqCst);
 
         if timestamp == last_timestamp {
             let sequence = self.sequence.fetch_add(1, Ordering::SeqCst) + 1;
+            // ToDo: SequenceがOverflowした場合の処理を追加する
             timestamp <<= 22;
             return timestamp | self.node_id | sequence;
         }
@@ -66,6 +69,8 @@ impl Sandflake {
         timestamp | self.node_id
     }
 
+    // ToDo: テストコードを追加する
+    // ToDo: Docコメントを追加する
     pub fn generate_object_id(&self, object_class: ObjectClass) -> u64 {
         let mut cls = object_class as u64;
         cls <<= 18;
