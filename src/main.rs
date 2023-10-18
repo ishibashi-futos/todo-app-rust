@@ -1,9 +1,9 @@
-use crate::services::sequential_id::ObjectClass;
+use crate::services::sequential_id::{ObjectClass, Sandflake, TimestampGenerator};
 
 mod services;
 
 fn main() {
-    let mut sandflake = services::sequential_id::Sandflake::new(1);
+    let sandflake = Sandflake::new(1, TimestampGenerator::Default);
     // for i in 0..10 {
     //     let id = snowflake.generate_object_id(ObjectClass::);
     //     println!("Seq {} / Generated ID: {}, {:064b}", i, id, id);

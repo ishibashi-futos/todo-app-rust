@@ -1,15 +1,20 @@
 extern crate chrono;
 
-use chrono::prelude::*;
 use std::sync::atomic::{AtomicU64, Ordering};
+
+use chrono::prelude::*;
+
+type TimestampFn = Box<dyn Fn() -> u64>;
 
 pub struct Sandflake {
     last_timestamp: AtomicU64,
     node_id: u64,
     sequence: AtomicU64,
+    current_timestamp: TimestampFn,
 }
 
 pub enum ObjectClass {
+    #[allow(dead_code)]
     Unknown = 0b0000,
     Project = 0b0001,
     Task = 0b0010,
@@ -18,24 +23,34 @@ pub enum ObjectClass {
     Download = 0b0101,
 }
 
+pub enum TimestampGenerator {
+    Default,
+    #[allow(dead_code)]
+    Mock(TimestampFn),
+}
+
 impl Sandflake {
-    pub fn new(node_id: u64) -> Self {
+    pub fn new(node_id: u64, timestamp_generator: TimestampGenerator) -> Self {
         let mut nid = node_id;
         nid <<= 12;
+        let current_timestamp = match timestamp_generator {
+            TimestampGenerator::Default => Box::new(|| {
+                let now: DateTime<Utc> = Utc::now();
+                now.timestamp_millis() as u64
+            }),
+            TimestampGenerator::Mock(mock) => mock,
+        };
+
         Sandflake {
             last_timestamp: AtomicU64::new(0),
             sequence: AtomicU64::new(0),
             node_id: nid,
+            current_timestamp,
         }
     }
 
-    fn current_timestamp(&self) -> u64 {
-        let now: DateTime<Utc> = Utc::now();
-        now.timestamp_millis() as u64
-    }
-
     pub fn generate_id(&self) -> u64 {
-        let mut timestamp = self.current_timestamp();
+        let mut timestamp = self.current_timestamp.as_ref()();
         let last_timestamp = self.last_timestamp.load(Ordering::SeqCst);
 
         if timestamp == last_timestamp {
@@ -55,7 +70,6 @@ impl Sandflake {
         let mut cls = object_class as u64;
         cls <<= 18;
         let id = self.generate_id();
-        println!("{:064b}:id\n{:064b}:class", id, cls);
         id | cls
     }
 }
