@@ -26,7 +26,7 @@ pub enum TimestampGenerator {
     Mock(TimestampFn),
 }
 
-const BASE_EPOC_TIME: u64 = 1609459200000; // 2021-01-01 00:00:00 UTCのタイムスタンプを基底として定義。これより前のタイムスタンプは使用しない。
+const BASE_EPOC_TIME: u64 = 1_609_459_200_000; // 2021-01-01 00:00:00 UTCのタイムスタンプを基底として定義。これより前のタイムスタンプは使用しない。
 
 impl Sandflake {
     pub fn new(node_id: u64, timestamp_generator: TimestampGenerator) -> Self {
