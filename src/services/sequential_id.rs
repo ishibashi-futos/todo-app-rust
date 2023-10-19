@@ -1,8 +1,5 @@
-extern crate chrono;
-
 use std::sync::atomic::{AtomicU64, Ordering};
-
-use chrono::prelude::*;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 type TimestampFn = Box<dyn Fn() -> u64>;
 
@@ -29,14 +26,18 @@ pub enum TimestampGenerator {
     Mock(TimestampFn),
 }
 
+const BASE_EPOC_TIME: u64 = 1609459200000; // 2021-01-01 00:00:00 UTCのタイムスタンプを基底として定義。これより前のタイムスタンプは使用しない。
+
 impl Sandflake {
     pub fn new(node_id: u64, timestamp_generator: TimestampGenerator) -> Self {
         let mut nid = node_id;
         nid <<= 12;
         let current_timestamp = match timestamp_generator {
             TimestampGenerator::Default => Box::new(|| {
-                let now: DateTime<Utc> = Utc::now();
-                now.timestamp_millis() as u64
+                SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap()
+                    .as_millis() as u64 - BASE_EPOC_TIME
             }),
             TimestampGenerator::Mock(mock) => mock,
         };
