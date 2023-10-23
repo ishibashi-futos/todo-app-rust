@@ -77,7 +77,8 @@ fn test_generate_id_add_node_id() {
 
         let id = sandflake.generate_id();
 
-        let mut actual = id & 0b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0011_1111_0000_0000_0000;
+        let mut actual =
+            id & 0b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0011_1111_0000_0000_0000;
         actual >>= 12;
         // panic!("{}, {}, {:64b}", node_id, actual, id);
         assert_eq!(node_id, actual);

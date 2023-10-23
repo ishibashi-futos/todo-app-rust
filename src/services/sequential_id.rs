@@ -32,7 +32,10 @@ const BASE_EPOC_TIME: u64 = 1_609_459_200_000; // 2021-01-01 00:00:00 UTCのタ�
 impl Sandflake {
     pub fn new(node_id: u64, timestamp_generator: TimestampGenerator) -> Self {
         if node_id > 32 {
-            panic!("Node ID exceeds the range of 0 to 32, initialization aborted: {}", node_id);
+            panic!(
+                "Node ID exceeds the range of 0 to 32, initialization aborted: {}",
+                node_id
+            );
         }
         let mut nid = node_id;
         nid <<= 12;
