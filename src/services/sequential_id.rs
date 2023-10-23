@@ -1,5 +1,6 @@
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::thread;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 type TimestampFn = Box<dyn Fn() -> u64>;
 
@@ -37,7 +38,8 @@ impl Sandflake {
                 SystemTime::now()
                     .duration_since(UNIX_EPOCH)
                     .unwrap()
-                    .as_millis() as u64 - BASE_EPOC_TIME
+                    .as_millis() as u64
+                    - BASE_EPOC_TIME
             }),
             TimestampGenerator::Mock(mock) => mock,
         };
@@ -50,17 +52,37 @@ impl Sandflake {
         }
     }
 
-    // ToDo: テストコードを追加する
-    // ToDo: Docコメントを追加する
+    /// Generate Sequential Id <Sandflake>
+    ///
+    /// Sandflake is an ID generator that creates unique IDs based on timestamp and combine then with other elements.
+    /// The ID is returned as a u64
+    ///
+    /// # Structure of the ID
+    ///
+    /// The ID consists of the following components.
+    ///
+    /// * 0-13 bytes: A sequential ID (8192 possibilities, but only 4096 are generated internally)
+    /// * 14-18 bytes: A NodeId with 32 possibilities
+    /// * 19-22 bytes: A whitespace for arbitrary codes
+    /// * 23-63 bytes: Elapsed time in milliseconds since 2021-01-01 00:00:00.000 UTC
+    ///
+    /// # note
+    ///
+    /// If the sequential ID overflows, the ID generator gives up all ID generation, waits 1ms, and generates the next ID.
+    ///
     pub fn generate_id(&self) -> u64 {
         let mut timestamp = self.current_timestamp.as_ref()();
         let last_timestamp = self.last_timestamp.load(Ordering::SeqCst);
 
         if timestamp == last_timestamp {
             let sequence = self.sequence.fetch_add(1, Ordering::SeqCst) + 1;
-            // ToDo: SequenceがOverflowした場合の処理を追加する
+            if sequence > 0b111111111111 {
+                let duration = Duration::from_millis(1);
+                thread::sleep(duration);
+                return self.generate_id();
+            }
             timestamp <<= 22;
-            return timestamp | self.node_id | sequence;
+            return timestamp | self.node_id | sequence % 4096;
         }
 
         self.last_timestamp.store(timestamp, Ordering::SeqCst);
