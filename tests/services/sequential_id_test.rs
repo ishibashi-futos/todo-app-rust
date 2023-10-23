@@ -41,7 +41,7 @@ async fn test_generate_id_seq_overflow() {
             TimestampGenerator::Mock(Box::new(|| {
                 unsafe {
                     I += 1;
-                    if I > 4095 {
+                    if I > 4097 {
                         return 1_609_459_200_002;
                     }
                 }
@@ -49,7 +49,7 @@ async fn test_generate_id_seq_overflow() {
             })),
         );
         let mut result: u64 = 0;
-        for _ in 0..4096 {
+        for _ in 0..4097 {
             result = sandflake.generate_id();
         }
         return result;
