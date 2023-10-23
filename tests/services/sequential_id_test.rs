@@ -68,4 +68,26 @@ async fn test_generate_id_seq_overflow() {
 }
 
 #[test]
-fn test_generate_id_add_node_id() {}
+fn test_generate_id_add_node_id() {
+    // between 0 and 32;
+    let node_ids: [u64; 5] = [0, 1, 10, 31, 32];
+
+    for node_id in node_ids {
+        let sandflake = Sandflake::default(node_id);
+
+        let id = sandflake.generate_id();
+
+        let mut actual = id & 0b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0011_1111_0000_0000_0000;
+        actual >>= 12;
+        // panic!("{}, {}, {:64b}", node_id, actual, id);
+        assert_eq!(node_id, actual);
+    }
+}
+
+#[test]
+#[should_panic(expected = "Node ID exceeds the range of 0 to 32, initialization aborted: 33")]
+fn test_generate_id_should_error_node_id_overflow() {
+    let node_id: u64 = 33;
+
+    _ = Sandflake::default(node_id);
+}

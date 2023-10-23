@@ -31,6 +31,9 @@ const BASE_EPOC_TIME: u64 = 1_609_459_200_000; // 2021-01-01 00:00:00 UTCのタ�
 
 impl Sandflake {
     pub fn new(node_id: u64, timestamp_generator: TimestampGenerator) -> Self {
+        if node_id > 32 {
+            panic!("Node ID exceeds the range of 0 to 32, initialization aborted: {}", node_id);
+        }
         let mut nid = node_id;
         nid <<= 12;
         let current_timestamp = match timestamp_generator {
@@ -52,6 +55,10 @@ impl Sandflake {
         }
     }
 
+    pub fn default(node_id: u64) -> Self {
+        Sandflake::new(node_id, TimestampGenerator::Default)
+    }
+
     /// Generate Sequential Id <Sandflake>
     ///
     /// Sandflake is an ID generator that creates unique IDs based on timestamp and combine then with other elements.
@@ -61,8 +68,8 @@ impl Sandflake {
     ///
     /// The ID consists of the following components.
     ///
-    /// * 0-13 bytes: A sequential ID (8192 possibilities, but only 4096 are generated internally)
-    /// * 14-18 bytes: A NodeId with 32 possibilities
+    /// * 0-12 bytes: A sequential ID
+    /// * 13-18 bytes: A NodeId with 32 possibilities
     /// * 19-22 bytes: A whitespace for arbitrary codes
     /// * 23-63 bytes: Elapsed time in milliseconds since 2021-01-01 00:00:00.000 UTC
     ///
