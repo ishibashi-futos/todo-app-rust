@@ -6,6 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+actix-rt = "2.9.0"
+actix-web = "4.4.0"
+serde = "1.0.190"
+serde_json = "1.0.107"
 
 [dev-dependencies]
 tokio = { version = "1.33.0", features = ["full"] }
